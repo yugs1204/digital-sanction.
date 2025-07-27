@@ -1,0 +1,273 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Digital Sanctions Tracker (Stable)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            @apply bg-gray-100 text-gray-800;
+        }
+        .card { 
+            @apply bg-white border-gray-200; 
+        }
+        .card-list-item { 
+            @apply bg-gray-50 border-gray-200; 
+        }
+        .filter-control { 
+            @apply bg-white border-gray-300 text-gray-900 placeholder-gray-400; 
+        }
+        .reset-btn { 
+            @apply bg-gray-200 hover:bg-gray-300 text-gray-800; 
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; cursor: pointer; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { height: 6px; @apply bg-gray-300 rounded-full; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -7px; height: 20px; width: 20px; @apply bg-indigo-600 rounded-full border-2 border-white; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); }
+        canvas:hover { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8 relative">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Interactive Digital Sanctions Tracker</h1>
+            <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">Click on charts and use the timeline to explore global digital sanctions.</p>
+        </header>
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">At a Glance</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="card p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="bg-indigo-100 p-3 rounded-full"><svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M12 19c-3.866 0-7-3.134-7-7s3.134-7 7-7 7 3.134 7 7-3.134 7-7 7z"/></svg></div><div><p class="text-gray-500 text-sm">Total Sanctions</p><p id="stat-total-sanctions" class="text-2xl font-bold">0</p></div></div>
+                <div class="card p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="bg-blue-100 p-3 rounded-full"><svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h8a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.938 6.128a9 9 0 118.124 0M12 4v1" /></svg></div><div><p class="text-gray-500 text-sm">Countries</p><p id="stat-total-countries" class="text-2xl font-bold">0</p></div></div>
+                <div class="card p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="bg-green-100 p-3 rounded-full"><svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg></div><div><p class="text-gray-500 text-sm">Sectors</p><p id="stat-total-sectors" class="text-2xl font-bold">0</p></div></div>
+                <div class="card p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="bg-yellow-100 p-3 rounded-full"><svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div><div><p class="text-gray-500 text-sm">Most Recent</p><p id="stat-recent-year" class="text-2xl font-bold">0</p></div></div>
+            </div>
+        </section>
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1 space-y-8">
+                <div class="card p-6 rounded-xl shadow-md sticky top-8">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 border-gray-200">Filters</h2>
+                    <div class="space-y-6">
+                        <input type="text" id="search" placeholder="Search by keyword..." class="filter-control mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <div><label for="year-slider" class="block font-medium">Year: <span id="year-label" class="font-bold text-indigo-600">All</span></label><input type="range" id="year-slider" class="w-full mt-2"></div>
+                        <select id="country-filter" class="filter-control block w-full pl-3 pr-10 py-2 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
+                        <select id="sector-filter" class="filter-control block w-full pl-3 pr-10 py-2 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
+                        <button id="reset-filters" class="reset-btn w-full font-bold py-2 px-4 rounded-md transition-colors">Reset All Filters</button>
+                    </div>
+                </div>
+            </div>
+            <div class="lg:col-span-2 space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="card p-6 rounded-xl shadow-md"><h3 class="text-xl font-bold mb-4">Sanctions by Year</h3><canvas id="yearChart"></canvas></div>
+                    <div class="card p-6 rounded-xl shadow-md"><h3 class="text-xl font-bold mb-4">Sanctions by Sector</h3><canvas id="sectorChart"></canvas></div>
+                </div>
+                <div class="card p-6 rounded-xl shadow-md"><h3 class="text-xl font-bold mb-4">Top Sanctioning Countries</h3><canvas id="countryChart"></canvas></div>
+                <div class="card p-6 rounded-xl shadow-md">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 border-gray-200">Sanctions List</h2>
+                    <p id="results-count" class="text-sm text-gray-500 mb-4">Loading...</p>
+                    <div id="sanctions-list" class="space-y-4 max-h-[800px] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DATA ---
+        const sanctionsData = [
+             { "country": "USA", "target": "Kapersky Lab", "type": "Government Software Ban", "year": 2017, "sector": "Cybersecurity", "reason": "Ties to Russian government.", "impact": "Banned from US federal networks.", "source": "https://www.npr.org/sections/thetwo-way/2017/09/13/550743543/u-s-government-bans-kaspersky-lab-software-from-all-federal-agencies" },
+            { "country": "USA", "target": "Huawei", "type": "Export Ban", "year": 2019, "sector": "Telecom", "reason": "National Security Concerns", "impact": "Disrupted chip supply chain.", "source": "https://www.reuters.com/technology/us-finalizes-rules-ban-new-huawei-zte-telecoms-equipment-2022-11-25/" },
+            { "country": "India", "target": "TikTok, WeChat & 57 other apps", "type": "App Ban", "year": 2020, "sector": "Social Media", "reason": "Data privacy and security.", "impact": "Lost 200M+ user base.", "source": "https://www.bbc.com/news/world-asia-india-53226921" },
+            { "country": "USA", "target": "DJI", "type": "Investment & Export Ban", "year": 2021, "sector": "Drones/Hardware", "reason": "Involvement in surveillance.", "impact": "Prohibits US investment.", "source": "https://www.ft.com/content/13a9871b-3b5b-4328-b593-2d25faa71661" },
+            { "country": "Russia", "target": "Meta, Google, Twitter", "type": "Service Throttling", "year": 2022, "sector": "Social Media", "reason": "Failure to remove content.", "impact": "Slowed service speeds.", "source": "https://www.reuters.com/technology/russia-fines-google-meta-failure-delete-banned-content-2021-12-24/" },
+            { "country": "USA", "target": "Tornado Cash", "type": "Financial Sanction", "year": 2022, "sector": "Cryptocurrency", "reason": "Alleged money laundering.", "impact": "Blocked all US transactions.", "source": "https://home.treasury.gov/news/press-releases/jy0916" },
+            { "country": "Netherlands", "target": "ASML (exports to China)", "type": "Export Controls", "year": 2023, "sector": "Semiconductors", "reason": "Limit China's tech access.", "impact": "Restricts chip production.", "source": "https://www.reuters.com/technology/asml-expects-dutch-government-restrict-chip-equipment-exports-china-2023-01-25/" },
+            { "country": "EU", "target": "NtechLab", "type": "Technology Ban", "year": 2023, "sector": "AI/Facial Recognition", "reason": "Supplying tech to Moscow.", "impact": "Banned from EU business.", "source": "https://www.rferl.org/a/russia-ntechlab-eu-sanctions-facial-recognition/32474931.html" },
+            { "country": "China", "target": "Micron Technology", "type": "Sales Ban", "year": 2023, "sector": "Semiconductors", "reason": "Cybersecurity risks.", "impact": "Barred from selling to key firms.", "source": "https://www.wsj.com/articles/china-bars-some-sales-by-u-s-chip-maker-micron-in-escalation-of-tech-fight-54694432" },
+            { "country": "EU", "target": "Major Online Platforms", "type": "Regulatory Compliance (DSA)", "year": 2024, "sector": "Platform Regulation", "reason": "Digital Services Act.", "impact": "Increased compliance costs.", "source": "https://digital-strategy.ec.europa.eu/en/policies/digital-services-act" }
+        ];
+
+        // --- DOM ELEMENT REFERENCES ---
+        const dom = {
+            searchInput: document.getElementById('search'),
+            yearSlider: document.getElementById('year-slider'),
+            yearLabel: document.getElementById('year-label'),
+            countryFilter: document.getElementById('country-filter'),
+            sectorFilter: document.getElementById('sector-filter'),
+            resetBtn: document.getElementById('reset-filters'),
+            listContainer: document.getElementById('sanctions-list'),
+            resultsCount: document.getElementById('results-count'),
+            stats: {
+                total: document.getElementById('stat-total-sanctions'),
+                countries: document.getElementById('stat-total-countries'),
+                sectors: document.getElementById('stat-total-sectors'),
+                year: document.getElementById('stat-recent-year')
+            }
+        };
+
+        // --- APP STATE (SINGLE SOURCE OF TRUTH) ---
+        const state = {
+            filters: { searchTerm: '', year: 'All', country: 'All', sector: 'All' },
+            charts: { sector: null, year: null, country: null }
+        };
+
+        // --- MASTER RENDER FUNCTION ---
+        function render() {
+            const filteredData = sanctionsData.filter(item =>
+                (state.filters.searchTerm === '' || Object.values(item).some(val => String(val).toLowerCase().includes(state.filters.searchTerm))) &&
+                (state.filters.year === 'All' || item.year == state.filters.year) &&
+                (state.filters.country === 'All' || item.country === state.filters.country) &&
+                (state.filters.sector === 'All' || item.sector === state.filters.sector)
+            );
+            renderSanctionsList(filteredData);
+            renderAllCharts(filteredData);
+            updateFilterControls();
+        }
+
+        // --- UI UPDATE SUB-FUNCTIONS ---
+        function renderSanctionsList(data) {
+            dom.listContainer.innerHTML = data.length > 0
+                ? data.map((item, i) => `
+                    <div class="card-list-item p-5 rounded-lg border transition-all duration-300 card-fade-in" style="animation-delay: ${i * 20}ms;">
+                        <div class="flex justify-between items-start"><h3 class="text-xl font-bold">${item.target}</h3><span class="bg-indigo-100 text-indigo-800 text-sm font-medium px-2.5 py-0.5 rounded-full">${item.year}</span></div>
+                        <p class="text-sm text-gray-500 mb-2">By: <span class="font-semibold">${item.country}</span> | Sector: <span class="font-semibold">${item.sector}</span></p>
+                        <p class="text-sm mt-2"><strong>Reason:</strong> ${item.reason}</p>
+                        <div class="mt-4"><a href="${item.source}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Read Source →</a></div>
+                    </div>`).join('')
+                : `<p class="text-gray-500 text-center">No sanctions found.</p>`;
+            dom.resultsCount.textContent = `Showing ${data.length} of ${sanctionsData.length} total sanctions.`;
+        }
+
+        function renderAllCharts(data) {
+            const textColor = '#374151'; // Light mode only
+            const gridColor = 'rgba(0, 0, 0, 0.1)'; // Light mode only
+            const commonOptions = { plugins: { legend: { display: false, labels: { color: textColor } } } };
+            const barOptions = { ...commonOptions, scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } } } };
+            const hBarOptions = { ...commonOptions, indexAxis: 'y', scales: { x: { ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } }, y: { ticks: { color: textColor }, grid: { color: gridColor } } } };
+
+            renderChart('sector', data, 'doughnut', commonOptions);
+            renderChart('year', data, 'bar', barOptions, true);
+            renderChart('country', data, 'bar', hBarOptions);
+        }
+
+        function renderChart(key, data, type, options, sortByKey = false) {
+            const chartData = processData(data, key, sortByKey);
+            const canvas = document.getElementById(`${key}Chart`);
+            if (state.charts[key]) state.charts[key].destroy();
+            state.charts[key] = new Chart(canvas, {
+                type,
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Count',
+                        data: chartData.values,
+                        backgroundColor: type === 'doughnut' ? ['#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'] : '#6366f1',
+                        borderWidth: type === 'doughnut' ? 2 : 0,
+                        borderColor: '#fff', // Light mode only
+                        borderRadius: 4
+                    }]
+                },
+                options: { ...options, responsive: true, onClick: (e, els) => handleChartClick(e, els, state.charts[key], key) }
+            });
+        }
+        
+        function updateFilterControls() {
+            dom.searchInput.value = state.filters.searchTerm;
+            dom.countryFilter.value = state.filters.country;
+            dom.sectorFilter.value = state.filters.sector;
+            dom.yearLabel.textContent = state.filters.year;
+            dom.yearSlider.value = state.filters.year === 'All' ? dom.yearSlider.min : state.filters.year;
+        }
+
+        // --- EVENT HANDLERS ---
+        function handleFilterChange(key, value) {
+            state.filters[key] = value;
+            render();
+        }
+        
+        function handleChartClick(event, elements, chart, filterKey) {
+            if (elements.length > 0) {
+                const label = chart.data.labels[elements[0].index];
+                handleFilterChange(filterKey, label);
+            }
+        }
+
+        function resetAllFilters() {
+            state.filters = { searchTerm: '', year: 'All', country: 'All', sector: 'All' };
+            render();
+        }
+        
+        // --- UTILITIES ---
+        function processData(data, key, sortByKey = false) {
+            const counts = data.reduce((acc, item) => { acc[item[key]] = (acc[item[key]] || 0) + 1; return acc; }, {});
+            let sorted = Object.entries(counts).sort(([,a],[,b]) => b-a);
+            if (sortByKey) sorted.sort(([a],[b]) => String(a).localeCompare(String(b)));
+            return { labels: sorted.map(([label]) => label), values: sorted.map(([,value]) => value) };
+        }
+
+        function animateCountUp(element, endValue) {
+            let startValue = 0;
+            const duration = 1000;
+            const frameTime = 1000 / 60;
+            const totalFrames = Math.round(duration / frameTime);
+            const increment = endValue / totalFrames;
+            
+            function counter() {
+                startValue += increment;
+                if (startValue < endValue) {
+                    element.textContent = Math.ceil(startValue);
+                    requestAnimationFrame(counter);
+                } else {
+                    element.textContent = endValue;
+                }
+            }
+            if (endValue > 0) counter();
+            else element.textContent = 0;
+        }
+
+        // --- INITIALIZATION ---
+        function init() {
+            // Setup Filters
+            const years = [...new Set(sanctionsData.map(s => s.year))].sort((a,b) => a-b);
+            dom.yearSlider.min = years[0];
+            dom.yearSlider.max = years[years.length - 1];
+            ['country', 'sector'].forEach(key => {
+                const values = ['All', ...new Set(sanctionsData.map(s => s[key]))].sort();
+                dom[`${key}Filter`].innerHTML = values.map(v => `<option value="${v}">${v}</option>`).join('');
+            });
+            
+            // Setup Event Listeners
+            dom.searchInput.addEventListener('input', () => handleFilterChange('searchTerm', dom.searchInput.value));
+            dom.yearSlider.addEventListener('change', () => handleFilterChange('year', dom.yearSlider.value));
+            dom.yearSlider.addEventListener('input', () => { dom.yearLabel.textContent = dom.yearSlider.value; });
+            dom.countryFilter.addEventListener('change', () => handleFilterChange('country', dom.countryFilter.value));
+            dom.sectorFilter.addEventListener('change', () => handleFilterChange('sector', dom.sectorFilter.value));
+            dom.resetBtn.addEventListener('click', resetAllFilters);
+
+            // Initial Render
+            render();
+            
+            // Animate stats once on load
+            animateCountUp(dom.stats.total, sanctionsData.length);
+            animateCountUp(dom.stats.countries, new Set(sanctionsData.map(s => s.country)).size);
+            animateCountUp(dom.stats.sectors, new Set(sanctionsData.map(s => s.sector)).size);
+            animateCountUp(dom.stats.year, Math.max(...sanctionsData.map(s => s.year)));
+        }
+
+        init();
+    });
+    </script>
+</body>
+</html>
