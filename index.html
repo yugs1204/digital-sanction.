@@ -1,273 +1,541 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Digital Sanctions Tracker (Stable)</title>
-    
-    <!-- Tailwind CSS -->
+    <title>India's Tightrope Walk: Navigating a World of Sanctions</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            @apply bg-gray-100 text-gray-800;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            overflow-x: hidden;
         }
-        .card { 
-            @apply bg-white border-gray-200; 
+        .headline-gradient {
+            background: linear-gradient(to right, #1e3a8a, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .card-list-item { 
-            @apply bg-gray-50 border-gray-200; 
+        .map-container svg {
+            width: 100%;
+            height: auto;
+            stroke: #9ca3af; /* gray-400 */
+            stroke-width: 0.5;
         }
-        .filter-control { 
-            @apply bg-white border-gray-300 text-gray-900 placeholder-gray-400; 
+        .map-container .country {
+            fill: #d1d5db; /* gray-300 */
+            transition: fill 0.3s ease;
         }
-        .reset-btn { 
-            @apply bg-gray-200 hover:bg-gray-300 text-gray-800; 
+        .map-container .country.india {
+            fill: #3b82f6; /* blue-500 */
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .card-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; cursor: pointer; background: transparent; }
-        input[type=range]::-webkit-slider-runnable-track { height: 6px; @apply bg-gray-300 rounded-full; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -7px; height: 20px; width: 20px; @apply bg-indigo-600 rounded-full border-2 border-white; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); }
-        canvas:hover { cursor: pointer; }
+        .map-container .country.interactive {
+            fill: #93c5fd; /* blue-300 */
+            cursor: pointer;
+        }
+        .map-container .country.interactive:hover {
+            fill: #2563eb; /* blue-600 */
+        }
+        .tooltip {
+            position: absolute;
+            background-color: rgba(17, 24, 39, 0.9); /* gray-900 with opacity */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            max-width: 250px;
+            text-align: center;
+            z-index: 100;
+        }
+        /* Corrected Timeline CSS */
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: #e5e7eb; /* gray-200 */
+            border-radius: 2px;
+        }
+        .timeline-item {
+            position: relative;
+            width: 50%;
+            margin-bottom: 2rem;
+        }
+        .timeline-item:nth-child(odd) {
+            align-self: flex-start;
+            padding-right: 2.5rem; /* Space from the line */
+        }
+        .timeline-item:nth-child(even) {
+            align-self: flex-end;
+            padding-left: 2.5rem; /* Space from the line */
+        }
+        .timeline-content {
+            padding: 1.5rem;
+            background-color: #f3f4f6; /* gray-100 */
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .timeline-dot {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: white;
+            border: 4px solid #3b82f6; /* blue-500 */
+            border-radius: 50%;
+            z-index: 10;
+        }
+        .timeline-item:nth-child(odd) .timeline-dot {
+            right: -0.625rem;
+        }
+        .timeline-item:nth-child(even) .timeline-dot {
+            left: -0.625rem;
+        }
+        .section-title {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 800; /* extrabold */
+            letter-spacing: -0.025em; /* tracking-tight */
+            color: #1f2937; /* gray-800 */
+        }
+
+        /* Interaction & Animation styles */
+        .fade-in-element {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-element.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .scorecard-item {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .scorecard-item:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        
+        /* Pakistan Trade Slider */
+        .slider-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        .slider-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .panel-before {
+            background-color: #2563eb; /* blue-600 */
+            clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+            z-index: 2;
+        }
+        .panel-after {
+            background-color: #dc2626; /* red-600 */
+            z-index: 1;
+        }
+        .slider-handle {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 4px;
+            height: 100%;
+            background-color: white;
+            cursor: ew-resize;
+            transform: translateX(-50%);
+            z-index: 3;
+        }
+        .slider-handle::after {
+            content: '↔';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            color: #374151;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        input[type="range"].slider-control {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: ew-resize;
+            z-index: 4;
+        }
+        input[type="range"].slider-control::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 4px;
+            height: 100%;
+            background: transparent;
+        }
     </style>
 </head>
-<body>
-    <div class="container mx-auto p-4 md:p-8">
-        <header class="text-center mb-8 relative">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Interactive Digital Sanctions Tracker</h1>
-            <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">Click on charts and use the timeline to explore global digital sanctions.</p>
-        </header>
-        <section class="mb-8">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">At a Glance</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="card p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="bg-indigo-100 p-3 rounded-full"><svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M12 19c-3.866 0-7-3.134-7-7s3.134-7 7-7 7 3.134 7 7-3.134 7-7 7z"/></svg></div><div><p class="text-gray-500 text-sm">Total Sanctions</p><p id="stat-total-sanctions" class="text-2xl font-bold">0</p></div></div>
-                <div class="card p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="bg-blue-100 p-3 rounded-full"><svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h8a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.938 6.128a9 9 0 118.124 0M12 4v1" /></svg></div><div><p class="text-gray-500 text-sm">Countries</p><p id="stat-total-countries" class="text-2xl font-bold">0</p></div></div>
-                <div class="card p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="bg-green-100 p-3 rounded-full"><svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg></div><div><p class="text-gray-500 text-sm">Sectors</p><p id="stat-total-sectors" class="text-2xl font-bold">0</p></div></div>
-                <div class="card p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="bg-yellow-100 p-3 rounded-full"><svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div><div><p class="text-gray-500 text-sm">Most Recent</p><p id="stat-recent-year" class="text-2xl font-bold">0</p></div></div>
+<body class="text-gray-700 antialiased">
+
+    <!-- Homepage: The Hook -->
+    <header class="w-full min-h-screen bg-white flex flex-col items-center justify-center p-4 md:p-8">
+        <div class="text-center max-w-4xl mx-auto">
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter headline-gradient mb-6">
+                India's Tightrope Walk
+            </h1>
+            <p class="text-lg md:text-xl text-gray-600 mb-12">
+                A deep dive into how India navigates the complex world of international sanctions, balancing its alliances, national interests, and the pressures of a polarized global order.
+            </p>
+        </div>
+
+        <!-- Interactive World Map -->
+        <div id="map-container" class="w-full max-w-5xl mx-auto relative map-container fade-in-element">
+            <svg viewBox="0 0 1000 500">
+                <path class="country" d="M0 0 H1000 V500 H0 Z" fill="#f3f4f6"></path>
+                <path id="IN" class="country india" d="M500 250 l20 0 l-5 15 l-10 -5 Z"></path>
+                <path id="RU" class="country interactive" data-info="Oil imports from Russia surged by over 500%, saving India an estimated $10 billion on its energy bill." d="M550 100 h150 v50 h-150 z"></path>
+                <path id="CN" class="country interactive" data-info="India's 'Digital Strike' banned over 200 apps, costing Chinese tech giant TikTok an estimated $6 billion." d="M600 200 h100 v60 h-100 z"></path>
+                <path id="PK" class="country interactive" data-info="Post-attack tariffs caused official trade to collapse by over 99%." d="M470 230 h25 v30 h-25 z"></path>
+                <path id="IR" class="country interactive" data-info="US pressure forced India's oil imports from Iran to drop from over 450,000 barrels per day to zero." d="M400 240 h50 v40 h-50 z"></path>
+                <path id="US" class="country" d="M100 150 h150 v100 h-150 z"></path>
+                <path class="country" d="M10,10 L990,10 L990,490 L10,490 Z" fill="none" stroke="#ccc" stroke-width="1" />
+            </svg>
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        
+        <!-- The Core Conflict -->
+        <div class="mt-16 max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 text-center fade-in-element">
+            <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-800 p-6 rounded-r-lg shadow-md">
+                <h3 class="font-bold text-xl mb-2">The Enforcer</h3>
+                <p>India rigorously follows all sanctions mandated by the United Nations Security Council, reflecting its commitment to international law.</p>
             </div>
-        </section>
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-1 space-y-8">
-                <div class="card p-6 rounded-xl shadow-md sticky top-8">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 border-gray-200">Filters</h2>
-                    <div class="space-y-6">
-                        <input type="text" id="search" placeholder="Search by keyword..." class="filter-control mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                        <div><label for="year-slider" class="block font-medium">Year: <span id="year-label" class="font-bold text-indigo-600">All</span></label><input type="range" id="year-slider" class="w-full mt-2"></div>
-                        <select id="country-filter" class="filter-control block w-full pl-3 pr-10 py-2 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
-                        <select id="sector-filter" class="filter-control block w-full pl-3 pr-10 py-2 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
-                        <button id="reset-filters" class="reset-btn w-full font-bold py-2 px-4 rounded-md transition-colors">Reset All Filters</button>
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-800 p-6 rounded-r-lg shadow-md">
+                <h3 class="font-bold text-xl mb-2">The Resistor</h3>
+                <p>India consistently rejects all unilateral sanctions imposed by individual countries, prioritizing its "strategic autonomy."</p>
+            </div>
+</div>
+    </header>
+
+    <!-- Section 1: The Playbook -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 fade-in-element">
+                <h2 class="section-title">The Playbook</h2>
+                <p class="text-lg text-gray-600 mt-2 max-w-3xl mx-auto">Understanding the 'why' behind India's actions through its historical policy and legal framework.</p>
+            </div>
+
+            <!-- Visual Timeline -->
+            <div class="relative w-full max-w-4xl mx-auto mb-20">
+                <div class="timeline-container relative flex flex-col items-center">
+                    <div class="timeline-item fade-in-element">
+                        <div class="timeline-content text-right">
+                            <h4 class="font-bold text-lg">1947: Non-Alignment</h4>
+                            <p class="text-sm text-gray-600">After independence, India co-founds the Non-Aligned Movement, charting a neutral course during the Cold War.</p>
+                        </div>
+                        <div class="timeline-dot"></div>
+                    </div>
+                    <div class="timeline-item fade-in-element">
+                        <div class="timeline-content">
+                            <h4 class="font-bold text-lg">1998: Sanctions Target</h4>
+                            <p class="text-sm text-gray-600">India faces unilateral sanctions after its nuclear tests, hardening its stance against such measures.</p>
+                        </div>
+                        <div class="timeline-dot"></div>
+                    </div>
+                    <div class="timeline-item fade-in-element">
+                        <div class="timeline-content text-right">
+                            <h4 class="font-bold text-lg">2010s: Multi-Alignment</h4>
+                            <p class="text-sm text-gray-600">India begins engaging with multiple major powers simultaneously, balancing relationships with the US, Russia, and others.</p>
+                        </div>
+                        <div class="timeline-dot"></div>
+                    </div>
+                    <div class="timeline-item fade-in-element">
+                        <div class="timeline-content">
+                            <h4 class="font-bold text-lg">Today: Strategic Autonomy</h4>
+                            <p class="text-sm text-gray-600">India's modern doctrine: an issue-based policy that prioritizes national interest and flexibility above all.</p>
+                        </div>
+                         <div class="timeline-dot"></div>
                     </div>
                 </div>
             </div>
-            <div class="lg:col-span-2 space-y-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="card p-6 rounded-xl shadow-md"><h3 class="text-xl font-bold mb-4">Sanctions by Year</h3><canvas id="yearChart"></canvas></div>
-                    <div class="card p-6 rounded-xl shadow-md"><h3 class="text-xl font-bold mb-4">Sanctions by Sector</h3><canvas id="sectorChart"></canvas></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center fade-in-element">
+                <!-- Infographic - Legal Toolkit -->
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">The Legal Toolkit</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start p-4 bg-gray-50 rounded-lg">
+                            <div class="p-3 bg-blue-100 rounded-full mr-4">
+                               <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h.5A2.5 2.5 0 0020 5.5V3.935m-14 0A2.5 2.5 0 018.5 2h7A2.5 2.5 0 0118 4.5v8.5a2.5 2.5 0 01-2.5 2.5h-7A2.5 2.5 0 016 13V4.5z"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">UN (Security Council) Act, 1947</h4>
+                                <p class="text-sm text-gray-600">Grants government power to enforce any UN Security Council decision.</p>
+                            </div>
+                        </div>
+                         <div class="flex items-start p-4 bg-gray-50 rounded-lg">
+                             <div class="p-3 bg-green-100 rounded-full mr-4">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Foreign Trade Act, 1992</h4>
+                                <p class="text-sm text-gray-600">Provides the regulatory tools to prohibit or restrict trade with sanctioned nations.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start p-4 bg-gray-50 rounded-lg">
+                            <div class="p-3 bg-red-100 rounded-full mr-4">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 6v-1m0-1V4m0 2.01M12 18v-2m0-2v-2m0-2v-2m0-2V8m0 0h.01M12 5h.01M12 4h.01M12 3h.01M12 21v-1m0-1v-1m0-1v-1m0-1v-1m-4.002-3.465l-.707-.707m-1.414-1.414l-.707-.707m-1.414-1.414l-.707-.707m-1.414-1.414l-.707-.707m6.364-3.536l.707.707m1.414 1.414l.707.707m1.414 1.414l.707.707m1.414 1.414l.707.707M4.929 4.929l.707.707m1.414 1.414l.707.707m1.414 1.414l.707.707m1.414 1.414l.707.707"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">IT Act, 2000 (Section 69A)</h4>
+                                <p class="text-sm text-gray-600">Empowers the government to block public access to online content for national security.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card p-6 rounded-xl shadow-md"><h3 class="text-xl font-bold mb-4">Top Sanctioning Countries</h3><canvas id="countryChart"></canvas></div>
-                <div class="card p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 border-gray-200">Sanctions List</h2>
-                    <p id="results-count" class="text-sm text-gray-500 mb-4">Loading...</p>
-                    <div id="sanctions-list" class="space-y-4 max-h-[800px] overflow-y-auto pr-2"></div>
+                <div class="text-center bg-blue-50 p-8 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">The "Third Option"</h3>
+                    <p class="text-gray-600 mb-6">Strategic autonomy in action. India increasingly abstains on contentious UN votes to avoid taking sides and protect its diverse interests.</p>
+                    <div class="text-blue-600 font-black">
+                        <span class="text-8xl">44%</span>
+                        <p class="text-2xl mt-2">Abstention Rate at UNGA (2025)</p>
+                        <p class="text-sm font-medium text-gray-500">A record high, demonstrating a deliberate policy choice.</p>
+                    </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Case Studies -->
+    <section class="py-20">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 fade-in-element">
+                <h2 class="section-title">Case Studies: Deep Dives</h2>
+                <p class="text-lg text-gray-600 mt-2 max-w-3xl mx-auto">Where the data tells the story of India's dual-track sanctions policy.</p>
+            </div>
+
+            <div class="bg-white p-8 md:p-12 rounded-2xl shadow-xl mb-16 fade-in-element">
+                <h3 class="text-3xl font-bold text-gray-800 mb-2">The "Digital Strike" on China</h3>
+                <p class="text-gray-600 mb-8">In response to border clashes, India banned hundreds of Chinese mobile apps, weaponizing its massive digital market.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                    <div class="lg:col-span-1 flex flex-wrap justify-center gap-4">
+                        <img src="https://placehold.co/80x80/000000/FFFFFF?text=TikTok" alt="TikTok Icon" class="rounded-2xl shadow-md">
+                        <img src="https://placehold.co/80x80/1D4ED8/FFFFFF?text=SHAREit" alt="SHAREit Icon" class="rounded-2xl shadow-md">
+                        <img src="https://placehold.co/80x80/F97316/FFFFFF?text=UC+Browser" alt="UC Browser Icon" class="rounded-2xl shadow-md">
+                    </div>
+                    <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 text-center">
+                        <div class="bg-red-50 p-6 rounded-lg">
+                            <p class="text-4xl font-bold text-red-600">200 Million</p>
+                            <p class="font-semibold text-red-800">Indian Users Lost by TikTok</p>
+                        </div>
+                        <div class="bg-red-50 p-6 rounded-lg">
+                            <p class="text-4xl font-bold text-red-600">$6 Billion</p>
+                            <p class="font-semibold text-red-800">Estimated Loss for TikTok</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-16">
+                <div class="bg-white p-8 md:p-12 rounded-2xl shadow-xl fade-in-element">
+                    <h3 class="text-3xl font-bold text-gray-800 mb-2">The "Economic Wall" with Pakistan</h3>
+                    <p class="text-gray-600 mb-6">After the 2019 Pulwama attack, India imposed a 200% tariff. Drag the slider to see the impact on trade.</p>
+                    <div id="pakistan-slider" class="slider-container">
+                        <div class="slider-panel panel-after">
+                            <h4 class="text-2xl font-bold">AFTER SANCTIONS</h4>
+                            <p class="text-5xl font-black my-4">$0.42 M</p>
+                            <p>India's Imports from Pakistan (2024)</p>
+                        </div>
+                        <div class="slider-panel panel-before" id="panel-before">
+                            <h4 class="text-2xl font-bold">BEFORE SANCTIONS</h4>
+                            <p class="text-5xl font-black my-4">$488.5 M</p>
+                            <p>India's Imports from Pakistan (2018)</p>
+                        </div>
+                        <div class="slider-handle" id="slider-handle"></div>
+                        <input type="range" min="0" max="100" value="50" class="slider-control" id="slider-control">
+                    </div>
+                </div>
+<div class="bg-white p-8 md:p-12 rounded-2xl shadow-xl fade-in-element">
+                    <h3 class="text-3xl font-bold text-gray-800 mb-2">A Tale of Two Sanctions</h3>
+                    <p class="text-gray-600 mb-6">India's response to US sanctions evolved from compliance (Iran) to defiance (Russia).</p>
+                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="text-center font-semibold text-lg mb-2">Iran Oil Imports (bpd)</h4>
+                            <canvas id="iranOilChart" height="180"></canvas>
+                        </div>
+                        <div>
+                            <h4 class="text-center font-semibold text-lg mb-2">Russia's Share of Oil Imports</h4>
+                            <canvas id="russiaOilChart" height="180"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    <!-- Section 3: Global Impact & The Road Ahead -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 fade-in-element">
+                <h2 class="section-title">Global Impact & The Road Ahead</h2>
+                <p class="text-lg text-gray-600 mt-2 max-w-3xl mx-auto">Summarizing the consequences of India's strategy and its path forward.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20 text-center fade-in-element">
+                <div class="p-8 bg-gray-50 rounded-lg scorecard-item">
+                    <div class="p-4 bg-green-100 rounded-full inline-block mb-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01"></path></svg>
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">Benefit</h4>
+                    <p>Major savings on the national energy bill and reinforced strategic partnerships.</p>
+                </div>
+                <div class="p-8 bg-gray-50 rounded-lg scorecard-item">
+                    <div class="p-4 bg-yellow-100 rounded-full inline-block mb-4">
+                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">Friction</h4>
+                    <p>New tensions and punitive tariffs from Western partners concerned about sanctions evasion.</p>
+                </div>
+                <div class="p-8 bg-gray-50 rounded-lg scorecard-item">
+                    <div class="p-4 bg-blue-100 rounded-full inline-block mb-4">
+                       <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h.5A2.5 2.5 0 0020 5.5V3.935m-14 0A2.5 2.5 0 018.5 2h7A2.5 2.5 0 0118 4.5v8.5a2.5 2.5 0 01-2.5 2.5h-7A2.5 2.5 0 016 13V4.5z"></path></svg>
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">Influence</h4>
+                    <p>Solidified India's role as a leader of the Global South and a champion of multipolarity.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>Exploring India's Foreign Policy in a Complex World.</p>
+        </div>
+    </footer>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- DATA ---
-        const sanctionsData = [
-             { "country": "USA", "target": "Kapersky Lab", "type": "Government Software Ban", "year": 2017, "sector": "Cybersecurity", "reason": "Ties to Russian government.", "impact": "Banned from US federal networks.", "source": "https://www.npr.org/sections/thetwo-way/2017/09/13/550743543/u-s-government-bans-kaspersky-lab-software-from-all-federal-agencies" },
-            { "country": "USA", "target": "Huawei", "type": "Export Ban", "year": 2019, "sector": "Telecom", "reason": "National Security Concerns", "impact": "Disrupted chip supply chain.", "source": "https://www.reuters.com/technology/us-finalizes-rules-ban-new-huawei-zte-telecoms-equipment-2022-11-25/" },
-            { "country": "India", "target": "TikTok, WeChat & 57 other apps", "type": "App Ban", "year": 2020, "sector": "Social Media", "reason": "Data privacy and security.", "impact": "Lost 200M+ user base.", "source": "https://www.bbc.com/news/world-asia-india-53226921" },
-            { "country": "USA", "target": "DJI", "type": "Investment & Export Ban", "year": 2021, "sector": "Drones/Hardware", "reason": "Involvement in surveillance.", "impact": "Prohibits US investment.", "source": "https://www.ft.com/content/13a9871b-3b5b-4328-b593-2d25faa71661" },
-            { "country": "Russia", "target": "Meta, Google, Twitter", "type": "Service Throttling", "year": 2022, "sector": "Social Media", "reason": "Failure to remove content.", "impact": "Slowed service speeds.", "source": "https://www.reuters.com/technology/russia-fines-google-meta-failure-delete-banned-content-2021-12-24/" },
-            { "country": "USA", "target": "Tornado Cash", "type": "Financial Sanction", "year": 2022, "sector": "Cryptocurrency", "reason": "Alleged money laundering.", "impact": "Blocked all US transactions.", "source": "https://home.treasury.gov/news/press-releases/jy0916" },
-            { "country": "Netherlands", "target": "ASML (exports to China)", "type": "Export Controls", "year": 2023, "sector": "Semiconductors", "reason": "Limit China's tech access.", "impact": "Restricts chip production.", "source": "https://www.reuters.com/technology/asml-expects-dutch-government-restrict-chip-equipment-exports-china-2023-01-25/" },
-            { "country": "EU", "target": "NtechLab", "type": "Technology Ban", "year": 2023, "sector": "AI/Facial Recognition", "reason": "Supplying tech to Moscow.", "impact": "Banned from EU business.", "source": "https://www.rferl.org/a/russia-ntechlab-eu-sanctions-facial-recognition/32474931.html" },
-            { "country": "China", "target": "Micron Technology", "type": "Sales Ban", "year": 2023, "sector": "Semiconductors", "reason": "Cybersecurity risks.", "impact": "Barred from selling to key firms.", "source": "https://www.wsj.com/articles/china-bars-some-sales-by-u-s-chip-maker-micron-in-escalation-of-tech-fight-54694432" },
-            { "country": "EU", "target": "Major Online Platforms", "type": "Regulatory Compliance (DSA)", "year": 2024, "sector": "Platform Regulation", "reason": "Digital Services Act.", "impact": "Increased compliance costs.", "source": "https://digital-strategy.ec.europa.eu/en/policies/digital-services-act" }
-        ];
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Interactive Map Tooltip ---
+            const interactiveCountries = document.querySelectorAll('.interactive');
+            const tooltip = document.getElementById('tooltip');
+            const mapContainer = document.getElementById('map-container');
+            interactiveCountries.forEach(country => {
+                country.addEventListener('mousemove', (e) => {
+                    tooltip.innerText = country.getAttribute('data-info');
+                    tooltip.style.opacity = '1';
+                    const mapRect = mapContainer.getBoundingClientRect();
+                    const x = e.clientX - mapRect.left;
+                    const y = e.clientY - mapRect.top;
+                    tooltip.style.left = `${x + 15}px`;
+                    tooltip.style.top = `${y + 15}px`;
+                });
+                country.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = '0';
+                });
+            });
 
-        // --- DOM ELEMENT REFERENCES ---
-        const dom = {
-            searchInput: document.getElementById('search'),
-            yearSlider: document.getElementById('year-slider'),
-            yearLabel: document.getElementById('year-label'),
-            countryFilter: document.getElementById('country-filter'),
-            sectorFilter: document.getElementById('sector-filter'),
-            resetBtn: document.getElementById('reset-filters'),
-            listContainer: document.getElementById('sanctions-list'),
-            resultsCount: document.getElementById('results-count'),
-            stats: {
-                total: document.getElementById('stat-total-sanctions'),
-                countries: document.getElementById('stat-total-countries'),
-                sectors: document.getElementById('stat-total-sectors'),
-                year: document.getElementById('stat-recent-year')
+            // --- Scroll Animations ---
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.fade-in-element').forEach(el => {
+                observer.observe(el);
+            });
+
+            // --- Pakistan Trade "Before & After" Slider ---
+            const slider = document.getElementById('slider-control');
+            const beforePanel = document.getElementById('panel-before');
+            const handle = document.getElementById('slider-handle');
+            if (slider && beforePanel && handle) {
+                slider.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    beforePanel.style.clipPath = `polygon(0 0, ${value}% 0, ${value}% 100%, 0 100%)`;
+                    handle.style.left = `${value}%`;
+                });
             }
-        };
 
-        // --- APP STATE (SINGLE SOURCE OF TRUTH) ---
-        const state = {
-            filters: { searchTerm: '', year: 'All', country: 'All', sector: 'All' },
-            charts: { sector: null, year: null, country: null }
-        };
-
-        // --- MASTER RENDER FUNCTION ---
-        function render() {
-            const filteredData = sanctionsData.filter(item =>
-                (state.filters.searchTerm === '' || Object.values(item).some(val => String(val).toLowerCase().includes(state.filters.searchTerm))) &&
-                (state.filters.year === 'All' || item.year == state.filters.year) &&
-                (state.filters.country === 'All' || item.country === state.filters.country) &&
-                (state.filters.sector === 'All' || item.sector === state.filters.sector)
-            );
-            renderSanctionsList(filteredData);
-            renderAllCharts(filteredData);
-            updateFilterControls();
-        }
-
-        // --- UI UPDATE SUB-FUNCTIONS ---
-        function renderSanctionsList(data) {
-            dom.listContainer.innerHTML = data.length > 0
-                ? data.map((item, i) => `
-                    <div class="card-list-item p-5 rounded-lg border transition-all duration-300 card-fade-in" style="animation-delay: ${i * 20}ms;">
-                        <div class="flex justify-between items-start"><h3 class="text-xl font-bold">${item.target}</h3><span class="bg-indigo-100 text-indigo-800 text-sm font-medium px-2.5 py-0.5 rounded-full">${item.year}</span></div>
-                        <p class="text-sm text-gray-500 mb-2">By: <span class="font-semibold">${item.country}</span> | Sector: <span class="font-semibold">${item.sector}</span></p>
-                        <p class="text-sm mt-2"><strong>Reason:</strong> ${item.reason}</p>
-                        <div class="mt-4"><a href="${item.source}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Read Source →</a></div>
-                    </div>`).join('')
-                : `<p class="text-gray-500 text-center">No sanctions found.</p>`;
-            dom.resultsCount.textContent = `Showing ${data.length} of ${sanctionsData.length} total sanctions.`;
-        }
-
-        function renderAllCharts(data) {
-            const textColor = '#374151'; // Light mode only
-            const gridColor = 'rgba(0, 0, 0, 0.1)'; // Light mode only
-            const commonOptions = { plugins: { legend: { display: false, labels: { color: textColor } } } };
-            const barOptions = { ...commonOptions, scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } } } };
-            const hBarOptions = { ...commonOptions, indexAxis: 'y', scales: { x: { ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } }, y: { ticks: { color: textColor }, grid: { color: gridColor } } } };
-
-            renderChart('sector', data, 'doughnut', commonOptions);
-            renderChart('year', data, 'bar', barOptions, true);
-            renderChart('country', data, 'bar', hBarOptions);
-        }
-
-        function renderChart(key, data, type, options, sortByKey = false) {
-            const chartData = processData(data, key, sortByKey);
-            const canvas = document.getElementById(`${key}Chart`);
-            if (state.charts[key]) state.charts[key].destroy();
-            state.charts[key] = new Chart(canvas, {
-                type,
+            // --- Chart.js Implementations (Restored) ---
+            // Iran Oil Chart
+            const iranCtx = document.getElementById('iranOilChart').getContext('2d');
+            new Chart(iranCtx, {
+                type: 'line',
                 data: {
-                    labels: chartData.labels,
+                    labels: ['Pre-2018', 'Mid-2018', 'Mid-2019'],
                     datasets: [{
-                        label: 'Count',
-                        data: chartData.values,
-                        backgroundColor: type === 'doughnut' ? ['#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'] : '#6366f1',
-                        borderWidth: type === 'doughnut' ? 2 : 0,
-                        borderColor: '#fff', // Light mode only
-                        borderRadius: 4
+                        label: 'Imports from Iran (bpd)',
+                        data: [457000, 300000, 0],
+                        borderColor: 'rgb(234, 88, 12)',
+                        backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                        fill: true
                     }]
                 },
-                options: { ...options, responsive: true, onClick: (e, els) => handleChartClick(e, els, state.charts[key], key) }
-            });
-        }
-        
-        function updateFilterControls() {
-            dom.searchInput.value = state.filters.searchTerm;
-            dom.countryFilter.value = state.filters.country;
-            dom.sectorFilter.value = state.filters.sector;
-            dom.yearLabel.textContent = state.filters.year;
-            dom.yearSlider.value = state.filters.year === 'All' ? dom.yearSlider.min : state.filters.year;
-        }
-
-        // --- EVENT HANDLERS ---
-        function handleFilterChange(key, value) {
-            state.filters[key] = value;
-            render();
-        }
-        
-        function handleChartClick(event, elements, chart, filterKey) {
-            if (elements.length > 0) {
-                const label = chart.data.labels[elements[0].index];
-                handleFilterChange(filterKey, label);
-            }
-        }
-
-        function resetAllFilters() {
-            state.filters = { searchTerm: '', year: 'All', country: 'All', sector: 'All' };
-            render();
-        }
-        
-        // --- UTILITIES ---
-        function processData(data, key, sortByKey = false) {
-            const counts = data.reduce((acc, item) => { acc[item[key]] = (acc[item[key]] || 0) + 1; return acc; }, {});
-            let sorted = Object.entries(counts).sort(([,a],[,b]) => b-a);
-            if (sortByKey) sorted.sort(([a],[b]) => String(a).localeCompare(String(b)));
-            return { labels: sorted.map(([label]) => label), values: sorted.map(([,value]) => value) };
-        }
-
-        function animateCountUp(element, endValue) {
-            let startValue = 0;
-            const duration = 1000;
-            const frameTime = 1000 / 60;
-            const totalFrames = Math.round(duration / frameTime);
-            const increment = endValue / totalFrames;
-            
-            function counter() {
-                startValue += increment;
-                if (startValue < endValue) {
-                    element.textContent = Math.ceil(startValue);
-                    requestAnimationFrame(counter);
-                } else {
-                    element.textContent = endValue;
+                options: {
+                    plugins: { legend: { display: false }},
+                    scales: { y: { beginAtZero: true, ticks: { callback: value => `${value/1000}k` } } }
                 }
-            }
-            if (endValue > 0) counter();
-            else element.textContent = 0;
-        }
-
-        // --- INITIALIZATION ---
-        function init() {
-            // Setup Filters
-            const years = [...new Set(sanctionsData.map(s => s.year))].sort((a,b) => a-b);
-            dom.yearSlider.min = years[0];
-            dom.yearSlider.max = years[years.length - 1];
-            ['country', 'sector'].forEach(key => {
-                const values = ['All', ...new Set(sanctionsData.map(s => s[key]))].sort();
-                dom[`${key}Filter`].innerHTML = values.map(v => `<option value="${v}">${v}</option>`).join('');
             });
             
-            // Setup Event Listeners
-            dom.searchInput.addEventListener('input', () => handleFilterChange('searchTerm', dom.searchInput.value));
-            dom.yearSlider.addEventListener('change', () => handleFilterChange('year', dom.yearSlider.value));
-            dom.yearSlider.addEventListener('input', () => { dom.yearLabel.textContent = dom.yearSlider.value; });
-            dom.countryFilter.addEventListener('change', () => handleFilterChange('country', dom.countryFilter.value));
-            dom.sectorFilter.addEventListener('change', () => handleFilterChange('sector', dom.sectorFilter.value));
-            dom.resetBtn.addEventListener('click', resetAllFilters);
-
-            // Initial Render
-            render();
-            
-            // Animate stats once on load
-            animateCountUp(dom.stats.total, sanctionsData.length);
-            animateCountUp(dom.stats.countries, new Set(sanctionsData.map(s => s.country)).size);
-            animateCountUp(dom.stats.sectors, new Set(sanctionsData.map(s => s.sector)).size);
-            animateCountUp(dom.stats.year, Math.max(...sanctionsData.map(s => s.year)));
-        }
-
-        init();
-    });
+            // Russia Oil Chart
+            const russiaCtx = document.getElementById('russiaOilChart').getContext('2d');
+            new Chart(russiaCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['2021', '2023', '2025'],
+                    datasets: [{
+                        label: 'Share of India\'s Oil Imports',
+                        data: [2, 35, 40],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.4)',
+                            'rgba(59, 130, 246, 0.6)',
+                            'rgba(59, 130, 246, 0.8)'
+                        ],
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false }},
+                    scales: { x: { beginAtZero: true, ticks: { callback: value => `${value}%` } } }
+                }
+            });
+        });
     </script>
 </body>
 </html>
