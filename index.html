@@ -48,12 +48,50 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* NEW Before/After Styles */
+        .impact-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            background-color: #f5f5f4; /* stone-100 */
+            border-radius: 0.75rem;
+            border: 1px solid #e7e5e4;
+            padding: 2rem;
+            flex-wrap: wrap;
+        }
+        .impact-card {
+            text-align: center;
+            padding: 1rem;
+        }
+        .impact-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #78716c; /* stone-500 */
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        .impact-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: 'Lora', serif;
+            color: #44403c;
+        }
+        #trade-value-after {
+            color: #b91c1c; /* Red text for the final value */
+        }
+        .impact-arrow {
+            color: #b91c1c;
+            flex-shrink: 0;
+        }
+
     </style>
 </head>
 <body class="antialiased">
 
     <!-- Header & Hero Section -->
-    <header class="min-h-screen flex flex-col items-center justify-center text-center p-6 relative overflow-hidden bg-[#FDFBF7]">
+    <header class="min-h-screen flex flex-col items-center justify-center text-center p-6 relative overflow-hidden bg-[#FDFBF7]" id="top">
         <div class="absolute inset-0 bg-[radial-gradient(#e7e5e4_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-50"></div>
         <div class="relative z-10">
             <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-stone-800 reveal">
@@ -101,15 +139,25 @@
                 <p class="mt-4 text-stone-600 max-w-2xl mx-auto">While opposed to unilateralism, India has deployed targeted economic measures in response to direct threats to its sovereignty and security.</p>
             </div>
             <div class="grid lg:grid-cols-5 gap-12 items-center">
-                <!-- Pakistan Case Study -->
-                <div class="lg:col-span-3 reveal">
-                    <div class="chart-container h-[450px]">
-                        <canvas id="pakistanTradeChart"></canvas>
+                <!-- NEW Before/After Component -->
+                <div class="lg:col-span-3 reveal" id="pakistan-trade-impact">
+                    <div class="impact-container">
+                        <div class="impact-card">
+                            <div class="impact-label">Before Sanctions (FY 2017-18)</div>
+                            <div class="impact-value">$488.50M</div>
+                        </div>
+<div class="impact-arrow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        </div>
+                        <div class="impact-card">
+                            <div class="impact-label">After Sanctions (FY 2023-24)</div>
+                            <div class="impact-value" id="trade-value-after">$488.50M</div>
+                        </div>
                     </div>
                 </div>
                 <div class="lg:col-span-2 reveal" style="transition-delay: 150ms;">
                     <h3 class="text-2xl font-bold text-red-800 mb-2">Case Study: Pakistan Post-Pulwama</h3>
-                    <p class="mb-4 text-stone-600">Following the 2019 Pulwama attack, India revoked Pakistan's Most Favored Nation (MFN) status and imposed a prohibitive 200% customs duty. This asymmetric move effectively halted formal trade, with imports collapsing by <span class="font-bold text-red-700">99.9%</span> from $488.5M to just $0.42M, sending a powerful political signal at minimal economic cost to India.</p>
+                    <p class="mb-4 text-stone-600">Following the 2019 Pulwama attack, India revoked Pakistan's Most Favored Nation (MFN) status and imposed a prohibitive 200% customs duty. This asymmetric move effectively halted formal trade, with imports collapsing by <span class="font-bold text-red-700">99.9%</span>, sending a powerful political signal at minimal economic cost to India.</p>
                 </div>
             </div>
             <div class="grid lg:grid-cols-5 gap-12 items-center mt-20">
@@ -144,7 +192,7 @@
                 </div>
             </div>
 
-<div class="chart-container reveal">
+            <div class="chart-container reveal">
                  <h3 class="text-2xl font-bold text-stone-800 mb-4 text-center">A Tale of Two Sanctions: The Great Oil Shift</h3>
                 <div class="h-[450px]"><canvas id="oilImportsChart"></canvas></div>
             </div>
@@ -176,198 +224,105 @@
             </div>
         </section>
     </main>
-    
-    <footer class="text-center py-8 border-t border-stone-200">
-        <p class="text-stone-500">Visual analysis based on the research paper: "Strategic Autonomy Under Pressure".</p>
-    </footer>
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         
-        // Chart.js Global Config & Plugins
-        Chart.defaults.color = '#57534e'; // stone-600
-        Chart.defaults.borderColor = '#d6d3d1'; // stone-300
+        Chart.defaults.color = '#57534e'; 
+        Chart.defaults.borderColor = '#d6d3d1';
         Chart.defaults.font.family = "'Inter', sans-serif";
         Chart.register(ChartDataLabels);
 
-        // --- 1. Pakistan Trade Chart ---
-        const pakistanCtx = document.getElementById('pakistanTradeChart').getContext('2d');
-        new Chart(pakistanCtx, {
-            type: 'bar',
-            data: {
-                labels: ['FY 2017-18 (Baseline)', 'FY 2023-24 (Post-Sanctions)'],
-                datasets: [{
-                    label: "India's Imports from Pakistan",
-                    data: [488.5, 0.42],
-                    backgroundColor: ['#d6d3d1', '#b91c1c'],
-                    borderColor: ['#a8a29e', '#991b1b'],
-                    borderWidth: 1,
-                    barPercentage: 0.6,
-                    categoryPercentage: 0.7,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Collapse of India-Pakistan Trade (Imports in USD Million)',
-                        font: { size: 18, family: "'Lora', serif" },
-                        color: '#44403c',
-                        padding: { bottom: 20 }
-                    },
-                    legend: { display: false },
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        formatter: (value) => '$' + value.toLocaleString() + 'M',
-                        color: '#44403c',
-                        font: { weight: 'bold' }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'USD Millions' }
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
-
-        // --- 2. China Apps Chart ---
+        // --- Charts Initialization ---
         const chinaCtx = document.getElementById('chinaAppsChart').getContext('2d');
-        new Chart(chinaCtx, {
-            type: 'bar',
-            data: {
-                labels: ['SHAREit', 'TikTok', 'UC Browser', 'Helo'],
-                datasets: [{
-                    label: 'Estimated Indian User Base at Time of Ban',
-                    data: [400, 200, 130, 50],
-                    backgroundColor: '#b91c1c',
-                    borderColor: '#991b1b',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Banned Chinese Apps: Estimated Indian User Base',
-                        font: { size: 18, family: "'Lora', serif" },
-                        color: '#44403c',
-                        padding: { bottom: 20 }
-                    },
-                    legend: { display: false },
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'end',
-                        formatter: (value) => value.toLocaleString() + ' Million',
-                        color: '#FFFCF5',
-                        font: { weight: 'bold' }
-                    }
+        if (chinaCtx) {
+            new Chart(chinaCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['SHAREit', 'TikTok', 'UC Browser', 'Helo'],
+                    datasets: [{
+                        label: 'Estimated Indian User Base at Time of Ban',
+                        data: [400, 200, 130, 50],
+                        backgroundColor: '#b91c1c',
+                        borderColor: '#991b1b',
+                        borderWidth: 1
+                    }]
                 },
-                scales: {
-                    x: {
-                        title: { display: true, text: 'Users (Millions)' },
-                        grid: { display: false }
+                options: {
+                    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Banned Chinese Apps: Estimated Indian User Base', font: { size: 18, family: "'Lora', serif" }, color: '#44403c', padding: { bottom: 20 } },
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'end', formatter: (value) => value.toLocaleString() + ' Million', color: '#FFFCF5', font: { weight: 'bold' } }
                     },
-                    y: {
-                        grid: { display: false }
-                    }
+                    scales: { x: { title: { display: true, text: 'Users (Millions)' }, grid: { display: false } }, y: { grid: { display: false } } }
                 }
-            }
-        });
-
-        // --- 3. Oil Imports Chart ---
+            });
+        }
         const oilCtx = document.getElementById('oilImportsChart').getContext('2d');
-        new Chart(oilCtx, {
-            type: 'line',
-            data: {
-                labels: ['Pre-2022', 'Mid-2022', 'Early-2023', 'Mid-2023', '2024-25'],
-                datasets: [
-                    {
-                        label: "Russia's Share",
-                        data: [2, 10, 35, 40, 40],
-                        borderColor: '#b91c1c',
-                        backgroundColor: 'rgba(185, 28, 28, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#b91c1c',
-                        pointRadius: 5,
-                        pointHoverRadius: 8,
-                    },
-                    {
-                        label: "Iran's Share",
-                        data: [14, 0, 0, 0, 0], // Iran was ~14% before dropping to 0
-                        borderColor: '#a8a29e',
-                        backgroundColor: 'rgba(168, 162, 158, 0.1)',
-                        fill: false,
-                        tension: 0.4,
-                        borderDash: [5, 5],
-                        pointStyle: 'crossRot',
-                        pointRadius: 6,
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: "Russia vs. Iran: Share of India's Oil Import Basket (%)",
-                        font: { size: 18, family: "'Lora', serif" },
-                        color: '#44403c',
-                        padding: { bottom: 20 }
-                    },
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => `${context.dataset.label}: ${context.parsed.y}%`
-                        }
-                    },
-                    datalabels: {
-                        display: false // Turned off for line chart to avoid clutter
-                    }
+        if (oilCtx) {
+            new Chart(oilCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Pre-2022', 'Mid-2022', 'Early-2023', 'Mid-2023', '2024-25'],
+                    datasets: [
+                        { label: "Russia's Share", data: [2, 10, 35, 40, 40], borderColor: '#b91c1c', backgroundColor: 'rgba(185, 28, 28, 0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#b91c1c', pointRadius: 5, pointHoverRadius: 8 },
+                        { label: "Iran's Share", data: [14, 0, 0, 0, 0], borderColor: '#a8a29e', backgroundColor: 'rgba(168, 162, 158, 0.1)', fill: false, tension: 0.4, borderDash: [5, 5], pointStyle: 'crossRot', pointRadius: 6 }
+                    ]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 45,
-                        title: { display: true, text: 'Share of Imports (%)' }
-                    }
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: "Russia vs. Iran: Share of India's Oil Import Basket (%)", font: { size: 18, family: "'Lora', serif" }, color: '#44403c', padding: { bottom: 20 } },
+                        legend: { position: 'bottom', labels: { usePointStyle: true } },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.parsed.y}%` } },
+                        datalabels: { display: false }
+                    },
+                    scales: { y: { beginAtZero: true, max: 45, title: { display: true, text: 'Share of Imports (%)' } } }
                 }
-            }
-        });
+            });
+        }
 
-        // --- Scroll Reveal Animation ---
-        const revealElements = document.querySelectorAll('.reveal');
+        // --- Reveal and Animation Logic ---
+        const allRevealElements = document.querySelectorAll('.reveal');
+
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
+                    
+                    if (entry.target.id === 'pakistan-trade-impact') {
+                        const valueElement = document.getElementById('trade-value-after');
+                        animateValue(valueElement, 488.5, 0.42, 2000);
+                        observer.unobserve(entry.target);
+                    }
                 }
             });
         }, {
-            threshold: 0.1
+            threshold: 0.5
         });
 
-        revealElements.forEach(el => {
-            observer.observe(el);
-        });
+        allRevealElements.forEach(el => observer.observe(el));
+        
+        // --- Guaranteed Number Animation Function ---
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const easedProgress = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+                const currentValue = start - (start - end) * easedProgress;
+                
+                obj.innerHTML = `$${currentValue.toFixed(2)}M`;
 
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    obj.innerHTML = `$${end.toFixed(2)}M`;
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
     });
     </script>
 
