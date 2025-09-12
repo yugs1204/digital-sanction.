@@ -1,307 +1,375 @@
-import React, { useState } from 'react';
-// Single-file React component for a research-paper->website prototype
-// Tailwind CSS classes are used for styling (no imports required)
-// Uses: react-simple-maps, recharts, framer-motion, lucide-react (assumed available)
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India's Sanctions Policy: A Visual Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7; /* Beige background */
+            color: #44403c; /* Stone 700 */
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Lora', serif;
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #b91c1c, #7f1d1d); /* Red 700 to Red 900 */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card {
+            background-color: #FFFCF5; /* Lighter Beige */
+            border: 1px solid #e7e5e4; /* Stone 200 */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px -5px rgba(185, 28, 28, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .chart-container {
+            background-color: #FFFCF5;
+            border: 1px solid #e7e5e4;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+        }
+        /* Custom animation for elements appearing on scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="antialiased">
 
-import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { motion } from 'framer-motion';
-import { MapPin } from 'lucide-react';
-
-const worldTopoJsonUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
-
-const COUNTRY_STATS = {
-  RUS: { name: 'Russia', stat: "Oil imports from Russia surged by 500%", value: 'Saved > $10B' },
-  CHN: { name: 'China', stat: "Digital strike: major app bans", value: 'TikTok: est. $6B loss' },
-  PAK: { name: 'Pakistan', stat: "Official trade collapsed by >99%", value: 'Informal trade est. $10B' },
-  IRN: { name: 'Iran', stat: "Oil imports dropped from 450k bpd to 0", value: '0 bpd' },
-  USA: { name: 'United States', stat: "Major Western partner; friction on tariffs", value: 'Tariff pressure' },
-};
-
-const timelineEvents = [
-  { year: 1947, title: 'UNSC Act (foundation of legal implementation)' },
-  { year: 1998, title: 'Sanctions after nuclear tests (historical lesson)' },
-  { year: 2019, title: 'Pulwama => MFN revoked, tariffs on Pakistan' },
-  { year: 2020, title: 'Galwan => Digital strikes; Chinese apps banned' },
-  { year: 2022, title: 'Russia-Ukraine => India abstains; imports surge' },
-  { year: 2025, title: 'Strategic autonomy quantified: record abstentions' },
-];
-
-const indiaRussiaTrade = [
-  { year: '2020', imports: 5.2 },
-  { year: '2021', imports: 9.9 },
-  { year: '2022', imports: 38.0 },
-  { year: '2023', imports: 54.0 },
-  { year: '2024', imports: 56.8 },
-];
-
-const iranImports = [
-  { year: '2016', bpd: 457 },
-  { year: '2019', bpd: 277.6 },
-  { year: '2020', bpd: 0 },
-  { year: '2021', bpd: 0 },
-];
-
-export default function SanctionsVisualizer() {
-  const [hoveredCountry, setHoveredCountry] = useState(null);
-  const [selectedCountry, setSelectedCountry] = useState('RUS');
-  const [sliderValue, setSliderValue] = useState(50);
-
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="bg-white shadow-sm sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">India's Sanctions Policy — Interactive Brief</h1>
-          <nav className="space-x-4 text-sm text-slate-600">
-            <a className="hover:underline">Home</a>
-            <a className="hover:underline">Playbook</a>
-            <a className="hover:underline">Case Studies</a>
-            <a className="hover:underline">Scorecard</a>
-          </nav>
+    <!-- Header & Hero Section -->
+    <header class="min-h-screen flex flex-col items-center justify-center text-center p-6 relative overflow-hidden bg-[#FDFBF7]">
+        <div class="absolute inset-0 bg-[radial-gradient(#e7e5e4_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-50"></div>
+        <div class="relative z-10">
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-stone-800 reveal">
+                Strategic Autonomy <span class="block">Under <span class="gradient-text">Pressure</span></span>
+            </h1>
+            <p class="mt-6 max-w-3xl mx-auto text-lg text-stone-600 reveal" style="transition-delay: 100ms;">
+                A quantitative analysis of India's engagement with international sanctions from 2015 to 2025, exploring its dual role as a UN-mandate implementer and a resistor of unilateral measures.
+            </p>
+            <a href="#introduction" class="mt-8 inline-block bg-red-700 text-white font-semibold rounded-lg px-6 py-3 hover:bg-red-800 transition-all duration-300 shadow-lg shadow-red-200/80 reveal" style="transition-delay: 200ms;">
+                Explore the Analysis
+            </a>
         </div>
-      </header>
+    </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
-        {/* Hook Section */}
-        <section className="grid md:grid-cols-2 gap-8 items-start">
-          <div>
-            <h2 className="text-3xl font-bold mb-3">India's Tightrope Walk: Strategic Autonomy in Practice</h2>
-            <p className="text-slate-700 mb-4">A visual, interactive translation of a quantitative paper on how India navigates UN-mandated sanctions and unilateral coercive measures.</p>
+    <main class="px-6 md:px-10 lg:px-20 py-16">
 
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <h3 className="font-semibold mb-2">Core Conflict</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="border rounded p-3">
-                  <h4 className="font-medium">The Enforcer</h4>
-                  <p className="text-sm text-slate-600">India follows UN-mandated sanctions.</p>
-                </div>
-                <div className="border rounded p-3">
-                  <h4 className="font-medium">The Resistor</h4>
-                  <p className="text-sm text-slate-600">India rejects unilateral sanctions from individual countries.</p>
-                </div>
-              </div>
+        <!-- Introduction: The Dual Faces -->
+        <section id="introduction" class="max-w-7xl mx-auto py-20">
+            <div class="text-center mb-12 reveal">
+                <h2 class="text-3xl md:text-4xl font-bold text-stone-800">The Dual Faces of Sanctions in Indian Statecraft</h2>
+                <p class="mt-4 text-stone-600 max-w-2xl mx-auto">India operates with a dual identity: a disciplined implementer of UN-mandated sanctions and a staunch opponent of unilateral coercive measures.</p>
             </div>
-
-            <div className="mt-6">
-              <h3 className="font-semibold mb-2">Quick Stats</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded shadow-sm">
-                  <p className="text-xs text-slate-500">Russia oil pivot</p>
-                  <p className="text-lg font-bold">~500% surge</p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card p-8 rounded-xl reveal">
+                    <div class="flex items-center gap-4">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-700"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                        <h3 class="text-2xl font-bold text-stone-800">Enforcer of Multilateralism</h3>
+                    </div>
+                    <p class="mt-4 text-stone-600">India consistently implements sanctions mandated by the United Nations Security Council (UNSC), reflecting its commitment to the collective security system through domestic laws like The UN (Security Council) Act, 1947.</p>
                 </div>
-                <div className="bg-white p-4 rounded shadow-sm">
-                  <p className="text-xs text-slate-500">UN abstentions (2025)</p>
-                  <p className="text-lg font-bold">44%</p>
+                <div class="card p-8 rounded-xl reveal" style="transition-delay: 150ms;">
+                    <div class="flex items-center gap-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-700"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <h3 class="text-2xl font-bold text-stone-800">Guardian of Strategic Autonomy</h3>
+                    </div>
+                    <p class="mt-4 text-stone-600">Shaped by its own history as a sanctions target, India does not recognize unilateral sanctions. This doctrine prioritizes national interest, flexibility, and avoidance of binding alliances that constrain decision-making.</p>
                 </div>
-              </div>
             </div>
-          </div>
-
-          {/* Map */}
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <h3 className="font-medium mb-2">Interactive World Map</h3>
-            <div style={{ height: 360 }} className="relative">
-              <ComposableMap projectionConfig={{ scale: 140 }}>
-                <ZoomableGroup center={[80, 22]} zoom={1.6}>
-                  <Geographies geography={worldTopoJsonUrl}>
-                    {({ geographies }) =>
-                      geographies.map(geo => {
-                        const iso = geo.properties.ISO_A3;
-                        const isSpecial = Object.keys(COUNTRY_STATS).includes(iso);
-                        return (
-                          <Geography
-                            key={geo.rsmKey}
-                            geography={geo}
-                            onMouseEnter={() => setHoveredCountry(iso)}
-                            onMouseLeave={() => setHoveredCountry(null)}
-                            onClick={() => isSpecial && setSelectedCountry(iso)}
-                            style={{
-                              default: { outline: 'none', fill: isSpecial ? '#0ea5a4' : '#e2e8f0', stroke: '#94a3b8' },
-                              hover: { outline: 'none', fill: '#06b6d4' },
-                              pressed: { outline: 'none' },
-                            }}
-                          />
-                        );
-                      })}
-                  </Geographies>
-                </ZoomableGroup>
-              </ComposableMap>
-
-              {/* Popup */}
-              <div className="absolute bottom-4 left-4 w-[260px] bg-white p-3 rounded shadow">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-slate-100 rounded-full">
-                    <MapPin size={18} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Selected</p>
-                    <p className="font-semibold">{COUNTRY_STATS[selectedCountry].name}</p>
-                    <p className="text-xs text-slate-600 mt-1">{COUNTRY_STATS[selectedCountry].stat}</p>
-                    <p className="text-xs text-slate-700 mt-1 font-medium">{COUNTRY_STATS[selectedCountry].value}</p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
         </section>
 
-        {/* Section 1: Playbook */}
-        <section className="mt-10">
-          <h2 className="text-2xl font-semibold mb-4">The Playbook — India's Sanctions Policy</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white p-4 rounded shadow-sm">
-              <h4 className="font-medium mb-2">Visual Timeline</h4>
-              <div className="space-y-4">
-                {timelineEvents.map(ev => (
-                  <div key={ev.year} className="flex items-center gap-3">
-                    <div className="w-10 text-sm font-semibold">{ev.year}</div>
-                    <div className="flex-1 text-sm text-slate-600">{ev.title}</div>
-                  </div>
-                ))}
-              </div>
+        <!-- India as an Enforcer -->
+        <section id="enforcer" class="max-w-7xl mx-auto py-20">
+            <div class="text-center mb-12 reveal">
+                <h2 class="text-3xl md:text-4xl font-bold text-stone-800">India as an <span class="gradient-text">Enforcer</span> of Economic Coercion</h2>
+                <p class="mt-4 text-stone-600 max-w-2xl mx-auto">While opposed to unilateralism, India has deployed targeted economic measures in response to direct threats to its sovereignty and security.</p>
             </div>
-
-            <div className="bg-white p-4 rounded shadow-sm">
-              <h4 className="font-medium mb-2">Infographic — Legal Toolkit</h4>
-              <ul className="text-sm text-slate-600 space-y-2">
-                <li>UNSC Act (1947) — Authority to implement UN decisions</li>
-                <li>Foreign Trade Policy / FTDR Act — Translates trade restrictions</li>
-                <li>UAPA &amp; PMLA — Tools for designations &amp; financial enforcement</li>
-              </ul>
+            <div class="grid lg:grid-cols-5 gap-12 items-center">
+                <!-- Pakistan Case Study -->
+                <div class="lg:col-span-3 reveal">
+                    <div class="chart-container h-[450px]">
+                        <canvas id="pakistanTradeChart"></canvas>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 reveal" style="transition-delay: 150ms;">
+                    <h3 class="text-2xl font-bold text-red-800 mb-2">Case Study: Pakistan Post-Pulwama</h3>
+                    <p class="mb-4 text-stone-600">Following the 2019 Pulwama attack, India revoked Pakistan's Most Favored Nation (MFN) status and imposed a prohibitive 200% customs duty. This asymmetric move effectively halted formal trade, with imports collapsing by <span class="font-bold text-red-700">99.9%</span> from $488.5M to just $0.42M, sending a powerful political signal at minimal economic cost to India.</p>
+                </div>
             </div>
-
-            <div className="bg-white p-4 rounded shadow-sm">
-              <h4 className="font-medium mb-2">Data Point — The "Third Option"</h4>
-              <p className="text-sm text-slate-600">India's abstention tactic at the UN allows it to preserve relationships without binary choices.</p>
-              <div className="mt-3 h-40">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={[{ name: '2019', abstain: 18 }, { name: '2022', abstain: 28 }, { name: '2025', abstain: 44 }]}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="abstain" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+            <div class="grid lg:grid-cols-5 gap-12 items-center mt-20">
+                <!-- China Case Study -->
+                <div class="lg:col-span-2 reveal lg:order-last" style="transition-delay: 150ms;">
+                    <h3 class="text-2xl font-bold text-red-800 mb-2">Case Study: China Post-Galwan</h3>
+                    <p class="mb-4 text-stone-600">In response to the 2020 border clashes, India initiated "digital strikes," banning hundreds of Chinese mobile apps. This action weaponized India's vast consumer market, erasing multi-billion dollar growth opportunities for firms like ByteDance (TikTok) and establishing a potent new non-military geopolitical tool.</p>
+                </div>
+                <div class="lg:col-span-3 reveal">
+                     <div class="chart-container h-[450px]">
+                        <canvas id="chinaAppsChart"></canvas>
+                    </div>
+                </div>
             </div>
-          </div>
         </section>
 
-        {/* Section 2: Case Studies */}
-        <section className="mt-10">
-          <h2 className="text-2xl font-semibold mb-4">Case Studies — Interactive Deep Dives</h2>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Digital Strike */}
-            <div className="bg-white p-6 rounded shadow-sm">
-              <h3 className="font-semibold mb-2">Digital Strike on China</h3>
-              <p className="text-sm text-slate-600 mb-4">Bans on key apps produced immediate market disruption and financial costs for Chinese firms.</p>
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                {/* placeholder icons */}
-                <div className="h-20 bg-slate-100 rounded flex items-center justify-center">TikTok</div>
-                <div className="h-20 bg-slate-100 rounded flex items-center justify-center">SHAREit</div>
-                <div className="h-20 bg-slate-100 rounded flex items-center justify-center">UC Browser</div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-slate-50 rounded">
-                  <p className="text-xs text-slate-500">Estimated users lost</p>
-                  <p className="font-bold">200M</p>
+        <!-- India as a Subject -->
+        <section id="subject" class="max-w-7xl mx-auto py-20">
+            <div class="text-center mb-12 reveal">
+                <h2 class="text-3xl md:text-4xl font-bold text-stone-800">India as a <span class="gradient-text">Subject</span> of Sanctions Pressure</h2>
+                <p class="mt-4 text-stone-600 max-w-2xl mx-auto">India has navigated the disruptive landscape of extraterritorial sanctions, with its response evolving from compliance to strategic defiance.</p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8 mb-12">
+                <div class="card p-8 rounded-xl reveal">
+                    <h3 class="text-2xl font-bold text-stone-800 mb-2">The Iran Dilemma: Reluctant Compliance</h3>
+                    <p class="text-stone-600">Faced with U.S. secondary sanctions after 2018, India was forced to wind down crude oil imports from Iran, a key energy partner. Imports dropped from over 450,000 barrels per day to zero by mid-2019, forcing a costly restructuring of India's energy supply chain.</p>
                 </div>
-                <div className="p-3 bg-slate-50 rounded">
-                  <p className="text-xs text-slate-500">Estimated loss to ByteDance</p>
-                  <p className="font-bold">$6B</p>
+                 <div class="card p-8 rounded-xl reveal" style="transition-delay: 150ms;">
+                    <h3 class="text-2xl font-bold text-stone-800 mb-2">The Russia Conundrum: Strategic Defiance</h3>
+                    <p class="text-stone-600">Following the 2022 Ukraine invasion, India adopted a defiant posture. Refusing to join Western sanctions, it capitalized on discounted Russian oil, saving an estimated $10 billion and becoming Russia's largest seaborne crude importer. This move, however, created friction with Western partners.</p>
                 </div>
-              </div>
             </div>
 
-            {/* Pakistan */}
-            <div className="bg-white p-6 rounded shadow-sm">
-              <h3 className="font-semibold mb-2">Economic Wall with Pakistan</h3>
-              <p className="text-sm text-slate-600 mb-4">Tariffs and MFN revocation caused official trade to collapse while informal trade grew.</p>
-              <div className="mb-4">
-                <input type="range" min="0" max="100" value={sliderValue} onChange={e => setSliderValue(Number(e.target.value))} />
-                <div className="text-xs text-slate-500 mt-2">Slide to reveal the trade cliff (illustrative)</div>
-              </div>
-              <div className="h-40">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={[{ year: 2018, trade: 2408 }, { year: 2019, trade: 303.4 }, { year: 2023, trade: 448 }, { year: 2024, trade: 0.42 }]}>
-                    <XAxis dataKey="year" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="trade" stroke="#0ea5a4" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+<div class="chart-container reveal">
+                 <h3 class="text-2xl font-bold text-stone-800 mb-4 text-center">A Tale of Two Sanctions: The Great Oil Shift</h3>
+                <div class="h-[450px]"><canvas id="oilImportsChart"></canvas></div>
             </div>
-
-            {/* Iran vs Russia */}
-            <div className="bg-white p-6 rounded shadow-sm md:col-span-2">
-              <h3 className="font-semibold mb-2">Iran — Russia Contrast (Energy)</h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-slate-600">Iran: imports collapsed to zero after US secondary sanctions</p>
-                  <div className="h-48">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={iranImports}>
-                        <XAxis dataKey="year" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="bpd" strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-600">Russia: explosive growth in imports, fueling energy savings</p>
-                  <div className="h-48">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={indiaRussiaTrade}>
-                        <XAxis dataKey="year" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="imports" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
         </section>
 
-        {/* Section 3: Scorecard */}
-        <section className="mt-10">
-          <h2 className="text-2xl font-semibold mb-4">Global Impact & The Road Ahead</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white p-4 rounded shadow-sm">
-              <h4 className="font-medium">Benefit</h4>
-              <p className="text-sm text-slate-600">Major savings on national energy bill and strengthened trade position.</p>
+        <!-- Conclusion -->
+        <section id="conclusion" class="max-w-7xl mx-auto py-20">
+            <div class="text-center mb-12 reveal">
+                <h2 class="text-3xl md:text-4xl font-bold text-stone-800">Conclusion & Strategic Recommendations</h2>
+                <p class="mt-4 text-stone-600 max-w-2xl mx-auto">India's dual-track sanctions policy has been a pragmatic and largely effective balancing act, but long-term sustainability requires enhanced resilience and skilled diplomacy.</p>
             </div>
-            <div className="bg-white p-4 rounded shadow-sm">
-              <h4 className="font-medium">Friction</h4>
-              <p className="text-sm text-slate-600">Heightened tensions with Western partners; risk of punitive tariffs.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card p-6 rounded-xl reveal">
+                    <h4 class="font-bold text-red-800">Strengthen Resilience</h4>
+                    <p class="text-sm text-stone-600 mt-2">Diversify energy suppliers, accelerate renewables, and boost domestic defense production to reduce vulnerabilities.</p>
+                </div>
+                <div class="card p-6 rounded-xl reveal" style="transition-delay: 100ms;">
+                    <h4 class="font-bold text-red-800">Lead Global South</h4>
+                    <p class="text-sm text-stone-600 mt-2">Use platforms like BRICS and G20 to build consensus against unilateral coercive economic measures.</p>
+                </div>
+                <div class="card p-6 rounded-xl reveal" style="transition-delay: 200ms;">
+                    <h4 class="font-bold text-red-800">Develop 'Proofing'</h4>
+                    <p class="text-sm text-stone-600 mt-2">Invest in non-dollar payment systems and alternative trade corridors to create resilient supply chains.</p>
+                </div>
+                <div class="card p-6 rounded-xl reveal" style="transition-delay: 300ms;">
+                    <h4 class="font-bold text-red-800">Calibrated Diplomacy</h4>
+                    <p class="text-sm text-stone-600 mt-2">Maintain open communication with Western partners to manage friction and highlight areas of strategic convergence.</p>
+                </div>
             </div>
-            <div className="bg-white p-4 rounded shadow-sm">
-              <h4 className="font-medium">Influence</h4>
-              <p className="text-sm text-slate-600">Solidified India's role in Global South diplomacy.</p>
-            </div>
-          </div>
-
-          <div className="mt-6 bg-white p-4 rounded shadow-sm">
-            <h4 className="font-medium mb-2">Strategic Recommendations (icon-based)</h4>
-            <div className="grid md:grid-cols-3 gap-4 text-sm text-slate-600">
-              <div className="p-3 border rounded">Shield — Economic Resilience</div>
-              <div className="p-3 border rounded">Factory — Make in India (defense diversification)</div>
-              <div className="p-3 border rounded">Globe — Diplomacy &amp; BRICS leadership</div>
-            </div>
-          </div>
         </section>
+    </main>
+    
+    <footer class="text-center py-8 border-t border-stone-200">
+        <p class="text-stone-500">Visual analysis based on the research paper: "Strategic Autonomy Under Pressure".</p>
+    </footer>
 
-        <footer className="mt-12 text-center text-sm text-slate-500">Prototype built from a research brief • Use this as a starting point for production UI</footer>
-      </main>
-    </div>
-  );
-}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        // Chart.js Global Config & Plugins
+        Chart.defaults.color = '#57534e'; // stone-600
+        Chart.defaults.borderColor = '#d6d3d1'; // stone-300
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.register(ChartDataLabels);
+
+        // --- 1. Pakistan Trade Chart ---
+        const pakistanCtx = document.getElementById('pakistanTradeChart').getContext('2d');
+        new Chart(pakistanCtx, {
+            type: 'bar',
+            data: {
+                labels: ['FY 2017-18 (Baseline)', 'FY 2023-24 (Post-Sanctions)'],
+                datasets: [{
+                    label: "India's Imports from Pakistan",
+                    data: [488.5, 0.42],
+                    backgroundColor: ['#d6d3d1', '#b91c1c'],
+                    borderColor: ['#a8a29e', '#991b1b'],
+                    borderWidth: 1,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.7,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Collapse of India-Pakistan Trade (Imports in USD Million)',
+                        font: { size: 18, family: "'Lora', serif" },
+                        color: '#44403c',
+                        padding: { bottom: 20 }
+                    },
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: (value) => '$' + value.toLocaleString() + 'M',
+                        color: '#44403c',
+                        font: { weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'USD Millions' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // --- 2. China Apps Chart ---
+        const chinaCtx = document.getElementById('chinaAppsChart').getContext('2d');
+        new Chart(chinaCtx, {
+            type: 'bar',
+            data: {
+                labels: ['SHAREit', 'TikTok', 'UC Browser', 'Helo'],
+                datasets: [{
+                    label: 'Estimated Indian User Base at Time of Ban',
+                    data: [400, 200, 130, 50],
+                    backgroundColor: '#b91c1c',
+                    borderColor: '#991b1b',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Banned Chinese Apps: Estimated Indian User Base',
+                        font: { size: 18, family: "'Lora', serif" },
+                        color: '#44403c',
+                        padding: { bottom: 20 }
+                    },
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'end',
+                        formatter: (value) => value.toLocaleString() + ' Million',
+                        color: '#FFFCF5',
+                        font: { weight: 'bold' }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Users (Millions)' },
+                        grid: { display: false }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // --- 3. Oil Imports Chart ---
+        const oilCtx = document.getElementById('oilImportsChart').getContext('2d');
+        new Chart(oilCtx, {
+            type: 'line',
+            data: {
+                labels: ['Pre-2022', 'Mid-2022', 'Early-2023', 'Mid-2023', '2024-25'],
+                datasets: [
+                    {
+                        label: "Russia's Share",
+                        data: [2, 10, 35, 40, 40],
+                        borderColor: '#b91c1c',
+                        backgroundColor: 'rgba(185, 28, 28, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#b91c1c',
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                    },
+                    {
+                        label: "Iran's Share",
+                        data: [14, 0, 0, 0, 0], // Iran was ~14% before dropping to 0
+                        borderColor: '#a8a29e',
+                        backgroundColor: 'rgba(168, 162, 158, 0.1)',
+                        fill: false,
+                        tension: 0.4,
+                        borderDash: [5, 5],
+                        pointStyle: 'crossRot',
+                        pointRadius: 6,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "Russia vs. Iran: Share of India's Oil Import Basket (%)",
+                        font: { size: 18, family: "'Lora', serif" },
+                        color: '#44403c',
+                        padding: { bottom: 20 }
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.dataset.label}: ${context.parsed.y}%`
+                        }
+                    },
+                    datalabels: {
+                        display: false // Turned off for line chart to avoid clutter
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 45,
+                        title: { display: true, text: 'Share of Imports (%)' }
+                    }
+                }
+            }
+        });
+
+        // --- Scroll Reveal Animation ---
+        const revealElements = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        revealElements.forEach(el => {
+            observer.observe(el);
+        });
+
+    });
+    </script>
+
+</body>
+</html>
